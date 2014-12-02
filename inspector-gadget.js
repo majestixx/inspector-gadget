@@ -46,7 +46,7 @@ angular.module('swd.inspector-gadget')
           // only allow certain attributes
           if (attrName === 'placement' || attrName === 'animation' ||
               attrName === 'delay' || attrName === 'container' ||
-              attrName === 'viewport') {
+              attrName === 'viewport' || attrName === 'template') {
             bootstrArgs[attrName] = attrValue;
           }
         });
