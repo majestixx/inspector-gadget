@@ -46,7 +46,8 @@ angular.module('swd.inspector-gadget')
           // only allow certain attributes
           if (attrName === 'placement' || attrName === 'animation' ||
               attrName === 'delay' || attrName === 'container' ||
-              attrName === 'viewport' || attrName === 'template') {
+              attrName === 'viewport' || attrName === 'template' ||
+              attrName === 'trigger') {
             bootstrArgs[attrName] = attrValue;
           }
         });
@@ -74,6 +75,11 @@ angular.module('swd.inspector-gadget')
         if (attrs.hasOwnProperty('timeout')) {
           timeout = parseInt(attrs.timeout, 10);
         }
+        
+        var trigger = 'hover';
+        if (attrs.hasOwnProperty('trigger')) {
+          trigger = attrs.trigger;
+        }        
 
         var popControl = null;
 
@@ -98,7 +104,7 @@ angular.module('swd.inspector-gadget')
           popControl.hide();
         };
 
-        anchoredDiv.mouseenter(function() {
+        var showPopover = function(event) {
           // trigger hover event, open popover, link btn to modal
           $timeout.cancel(hidePromise);
           if (!isPopOpen(root, myPopoverId)) {
@@ -109,17 +115,34 @@ angular.module('swd.inspector-gadget')
             popCont.mouseenter(function() {
               $timeout.cancel(hidePromise);
             });
-            popCont.mouseleave(function() {
-              $timeout.cancel(hidePromise);
-              hidePromise = $timeout(function() {
+            
+            if(trigger == 'hover') {
+              popCont.mouseleave(function() {
+                $timeout.cancel(hidePromise);
+                hidePromise = $timeout(function() {
+                  hide();
+                }, timeout);
+              });
+            } else if (trigger == 'click') {
+              $('html').click(function() {
                 hide();
-              }, timeout);
-            });
+              });
+            }
 
             $compile(popCont.contents())(scope);
             scope.$apply();
+            
+            event.stopPropagation();
           }
-        });
+          return false;
+        };
+        
+        if(trigger == 'hover') {
+          anchoredDiv.mouseenter(showPopover);
+        } else if(trigger == 'click') {
+          anchoredDiv.click(showPopover);
+        }
+        
         anchoredDiv.on('shown.bs.popover', function() {
           rendered = true;
         });
